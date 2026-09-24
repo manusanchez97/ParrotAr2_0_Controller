@@ -1,12 +1,13 @@
 # Arquitectura
 
-## Alcance de esta entrega
+## Alcance de la entrega base
 
-Esta primera entrega implementa exclusivamente **MVP-00 (diagnóstico de red)** y
-**MVP-01 (recepción y visualización de NavData)**. Es deliberadamente de solo
-lectura desde el punto de vista del vuelo: no contiene despegue, aterrizaje,
-`AT*PCMD`, movimiento, teclado, gamepad ni vídeo. El único datagrama enviado al
-puerto de NavData es el disparador que solicita el flujo de telemetría.
+La entrega real implementa **MVP-00 (diagnóstico de red)** y **MVP-01
+(recepción y visualización de NavData)**. Su sesión puede enviar `CONFIG_IDS`,
+`CONFIG` y `CTRL` para solicitar y reconocer el modo demo. No contiene comandos
+reales de despegue, aterrizaje ni movimiento. En una ruta separada, el simulador
+UDP de loopback entiende `REF`/`PCMD` y produce telemetría cinemática sintética;
+nunca reenvía esos comandos a una interfaz externa.
 
 La aplicación se ejecuta en Windows 10/11 con Python, después de que el usuario
 se conecte manualmente al punto de acceso Wi-Fi del dron. No cambia interfaces,
@@ -78,9 +79,12 @@ adaptadores Windows para que protocolo y control permanezcan portables.
 | `ardrone.navdata` | Verificación de cabecera, opciones, longitudes y checksum; decodificación de demo/state. |
 | `ardrone.state` | Modelos y significado observable del estado del dron. |
 | `ardrone.transport` | Sockets UDP, timeout, dirección local elegida por la tabla de rutas y cierre. |
-| `ardrone.client` | Inicio/reintento del flujo, recepción y detección de pérdida. |
+| `ardrone.client` | Inicio del flujo, handshake demo `CONFIG`/`CTRL`, recepción y detección de pérdida. |
 | `cli.ping` | Diagnóstico mediante protocolo, sin depender de ICMP. |
 | `cli.monitor` | Render limitado en frecuencia y cierre limpio con `Ctrl+C`. |
+| `cli.controller` | Control de teclado y panel NavData en una sola sesión del simulador loopback. |
+| `simulator.udp_drone` | Endpoint UDP de loopback que emula bootstrap, configuración AT y NavData. |
+| `simulator.dynamics` | Respuesta cinemática aproximada a `REF`/`PCMD`, solo dentro del gemelo. |
 | `controller.*` | Futuro: adaptadores de entrada; no forman parte de MVP-00/01. |
 | `safety.*` | Futuro: watchdog y máquina de estados; las reglas ya están definidas en `safety.md`. |
 
@@ -90,10 +94,12 @@ El MVP puede operar con un único hilo bloqueado en `recvfrom` con timeout corto
 
 1. crear socket UDP y enlazar el extremo local;
 2. enviar el disparador NavData al dron;
-3. recibir, validar y publicar instantáneas;
-4. al vencer el timeout, marcar NavData como perdida y reintentar de forma
+3. recibir y validar NavData; si está en bootstrap, solicitar demo y reconocer
+   `COMMAND_MASK` mediante el ACK de configuración;
+4. publicar instantáneas;
+5. al vencer el timeout, marcar NavData como perdida y reintentar de forma
    acotada el disparador sin bloquear indefinidamente la interfaz;
-5. al recibir `KeyboardInterrupt`, cerrar el socket en un bloque `finally`.
+6. al recibir `KeyboardInterrupt`, cerrar el socket en un bloque `finally`.
 
 Un timeout es un evento esperado, no un motivo para reutilizar bytes antiguos.
 Los errores irrecuperables de socket terminan con un diagnóstico y código de

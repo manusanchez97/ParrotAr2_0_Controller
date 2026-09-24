@@ -44,20 +44,21 @@ def main() -> int:
     last_draw = 0.0
     try:
         client.open()
+        navdata = client.initialize_demo()
         while True:
-            navdata = client.receive()
             if navdata.demo is None:
-                raise RuntimeError(
-                    "NavData demo option absent; configure navdata_demo=TRUE using a trusted SDK client"
-                )
+                navdata = client.initialize_demo()
+            if navdata.demo is None:
+                continue
             now = time.perf_counter()
             if now - last_draw >= args.refresh:
                 _clear()
                 received = client.last_received_at or now
                 print(_screen(navdata.demo, now - received), end="", flush=True)
                 last_draw = now
+            navdata = client.receive()
     except KeyboardInterrupt:
-        print("\nMonitor stopped; sockets closed. No flight command was sent.")
+        print("\nMonitor stopped; sockets closed. No flight-control command was sent.")
         return 0
     except (OSError, NavdataTimeout, RuntimeError) as exc:
         print(f"\nNavData unavailable: {exc}")
