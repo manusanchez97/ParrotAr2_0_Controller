@@ -3,9 +3,11 @@
 ## Advertencia y alcance
 
 Un AR.Drone puede causar lesiones y daños. El software no sustituye el manual,
-la inspección previa ni el juicio del piloto. Los MVP-00 y MVP-01 son de
-diagnóstico/telemetría y **no deben mover motores**. Si durante estas pruebas los
-motores reaccionan, desconecte la batería e investigue antes de continuar.
+la inspección previa ni el juicio del piloto. Los MVP-00 y MVP-01 contra el dron
+real son de diagnóstico/telemetría y **no deben mover motores**. El controlador
+de esta rama exige la opción --simulator y solo conecta a loopback. Si durante
+una prueba de diagnóstico con hardware los motores reaccionan, desconecte la
+batería e investigue antes de continuar.
 
 ## Preparación para MVP-00/01
 

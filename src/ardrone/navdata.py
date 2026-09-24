@@ -4,8 +4,11 @@ from dataclasses import dataclass
 import struct
 
 from .protocol import (
+    COMMAND_MASK,
+    COM_WATCHDOG_MASK,
     EMERGENCY_MASK,
     FLY_MASK,
+    NAVDATA_BOOTSTRAP_MASK,
     NAVDATA_CHECKSUM_TAG,
     NAVDATA_DEMO_TAG,
     NAVDATA_HEADER,
@@ -29,6 +32,22 @@ class Navdata:
     raw_state: int
     demo: DroneState | None
     checksum_valid: bool
+
+    @property
+    def is_bootstrap(self) -> bool:
+        return bool(self.raw_state & NAVDATA_BOOTSTRAP_MASK)
+
+    @property
+    def command_pending(self) -> bool:
+        return bool(self.raw_state & COMMAND_MASK)
+
+    @property
+    def communication_watchdog(self) -> bool:
+        return bool(self.raw_state & COM_WATCHDOG_MASK)
+
+    @property
+    def is_emergency(self) -> bool:
+        return bool(self.raw_state & EMERGENCY_MASK)
 
 
 def _flight_state(raw_state: int) -> FlightState:
