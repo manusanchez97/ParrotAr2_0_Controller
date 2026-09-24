@@ -1,8 +1,8 @@
 # AR.Drone 2.0 Controller (Windows, MVP-00/01)
 
-Aplicación **solo de diagnóstico y telemetría** para un PC Windows conectado
-manualmente al punto de acceso Wi-Fi de un Parrot AR.Drone 2.0. Esta versión no
-incluye ningún comando de vuelo, movimiento ni vídeo.
+Conectada al AR.Drone 2.0 real, la aplicación se limita a **diagnóstico y
+telemetría**: no envía comandos de vuelo ni movimiento. El control por teclado
+está disponible solo para el simulador local en loopback.
 
 ## Instalación (PowerShell)
 
@@ -34,5 +34,34 @@ antes de probar con hardware.
 
 ```powershell
 python -m pytest
+```
+
+## Simulador local de protocolo
+
+Se puede iniciar un emulador UDP en loopback para desarrollar la comunicación
+sin un dron conectado:
+
+Terminal 1:
+
+```powershell
+python -m simulator.udp_drone
+```
+
+Terminal 2:
+
+```powershell
+python -m cli.controller --simulator
+```
+
+El emulador produce NavData sintética, reconoce el handshake demo y modela la
+respuesta cinemática a `REF`/`PCMD` recibidos en loopback. Consulte [su
+funcionamiento y límites](docs/udp_simulator.md).
+
+El controlador incluye el panel de telemetría y abre una vista 3D isométrica de
+la trayectoria estimada. Si prefieres el monitor independiente, puedes
+ejecutarlo en otra terminal:
+
+```powershell
+python -m cli.monitor --ip 127.0.0.1
 ```
 

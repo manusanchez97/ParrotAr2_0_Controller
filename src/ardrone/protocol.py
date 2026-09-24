@@ -10,6 +10,7 @@ NAVDATA_TRIGGER = b"\x01\x00\x00\x00"
 
 # Bits in the 32-bit ardrone_state field.
 FLY_MASK = 1 << 0
+COMMAND_MASK = 1 << 6
 NAVDATA_BOOTSTRAP_MASK = 1 << 11
 COM_WATCHDOG_MASK = 1 << 30
 EMERGENCY_MASK = 1 << 31

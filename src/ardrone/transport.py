@@ -41,6 +41,12 @@ class DroneTransport:
     def request_navdata(self) -> None:
         self._require_navdata().sendto(NAVDATA_TRIGGER, (self.drone_ip, NAVDATA_PORT))
 
+    def send_at(self, command: bytes) -> None:
+        """Send one encoded AT command through the connected command socket."""
+        if not command.endswith(b"\r"):
+            raise ValueError("AT commands must end with carriage return")
+        self._require_command().send(command)
+
     def receive_navdata(self, maximum: int = 65535) -> tuple[bytes, tuple[str, int]]:
         return self._require_navdata().recvfrom(maximum)
 
